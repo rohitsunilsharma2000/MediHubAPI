@@ -1,0 +1,23 @@
+#version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Chetan@123
+      MYSQL_DATABASE: hms1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - medihub-net
+
+volumes:
+  mysql_data:
+
+networks:
+  medihub-net:
+    driver: bridge
