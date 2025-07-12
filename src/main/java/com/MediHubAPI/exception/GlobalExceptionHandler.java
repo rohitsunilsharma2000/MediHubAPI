@@ -87,17 +87,38 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
+        String path = request.getDescription(false); // e.g. "uri=/api/test-roles/super-admin"
+        String message;
+
+        if (path.contains("/api/test-roles/super-admin")) {
+            message = " Access denied: Only SUPER_ADMIN can access this endpoint.";
+        } else if (path.contains("/api/test-roles/admin-or-hr")) {
+            message = " Access denied: Only ADMIN or HR_MANAGER roles can access this endpoint.";
+        } else if (path.contains("/api/test-roles/billing")) {
+            message = " Access denied: Only BILLING_CLERK can access this endpoint.";
+        } else if (path.contains("/api/test-roles/pharmacist-or-doctor")) {
+            message = " Access denied: Only PHARMACIST or DOCTOR roles can access this endpoint.";
+        } else if (path.contains("/api/test-roles/debug")) {
+            message = " Access denied: You are not authorized to view role information.";
+        } else if (path.contains("/api/users")) {
+            // 🔁 Your original custom message
+            message = " Cannot create any users: " + ex.getMessage();
+        } else {
+            message = "Access denied: You do not have the required permission.";
+        }
+
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
-                "Cannot create any users: " + ex.getMessage(),
-                request.getDescription(false),
+                message,
+                path,
                 Instant.now()
         );
+
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
-    // ✅ NEW: Handle invalid enum (like wrong role value)
+        // ✅ NEW: Handle invalid enum (like wrong role value)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleInvalidFormat(HttpMessageNotReadableException ex, WebRequest request) {
         Throwable cause = ex.getMostSpecificCause();
