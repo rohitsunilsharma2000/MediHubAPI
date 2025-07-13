@@ -1,7 +1,6 @@
 package com.MediHubAPI.controller;
 
 import com.MediHubAPI.dto.availability.*;
-import com.MediHubAPI.model.enums.SlotStatus;
 import com.MediHubAPI.service.DoctorAvailabilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

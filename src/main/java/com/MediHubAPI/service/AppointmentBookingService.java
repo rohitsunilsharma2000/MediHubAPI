@@ -9,7 +9,6 @@ import com.MediHubAPI.model.AppointmentSlot;
 import com.MediHubAPI.model.DoctorAvailability;
 import com.MediHubAPI.model.User;
 import com.MediHubAPI.model.enums.SlotStatus;
-import com.MediHubAPI.model.enums.SlotType;
 import com.MediHubAPI.repository.AppointmentSlotRepository;
 import com.MediHubAPI.repository.DoctorAvailabilityRepository;
 import com.MediHubAPI.repository.UserRepository;
@@ -18,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
