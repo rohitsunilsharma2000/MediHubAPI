@@ -5,9 +5,16 @@ import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
 import javax.crypto.SecretKey;
 
 @SpringBootApplication
+@EntityScan("com.MediHubAPI.model")
+@EnableJpaRepositories("com.MediHubAPI.repository")
+@ComponentScan("com.MediHubAPI")
 public class MediHubApiApplication {
 
 	public static void main(String[] args) {
