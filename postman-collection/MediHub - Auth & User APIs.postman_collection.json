@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "2464f420-b127-4b1e-880c-238dc92cd9b0",
+		"_postman_id": "5081879b-aa26-4215-bb7a-73e92b8c7efa",
 		"name": "MediHub - Auth & User APIs",
 		"description": "Postman collection for AuthController and UserController APIs in MediHub Hospital Management System.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "46671077",
-		"_collection_link": "https://amit-7068717.postman.co/workspace/Amit's-Workspace~68814650-5925-4a70-837d-1024adc01412/collection/46671077-2464f420-b127-4b1e-880c-238dc92cd9b0?action=share&source=collection_link&creator=46671077"
+		"_exporter_id": "46586247",
+		"_collection_link": "https://test-6842547.postman.co/workspace/test's-Workspace~9f23d41a-bb9d-4011-80a2-3c15346769cb/collection/46586247-5081879b-aa26-4215-bb7a-73e92b8c7efa?action=share&source=collection_link&creator=46586247"
 	},
 	"item": [
 		{
@@ -43,6 +43,26 @@
 					"listen": "test",
 					"script": {
 						"exec": [
+							"// Ensure we can parse the response",
+							"let response = {};",
+							"",
+							"try {",
+							"    response = pm.response.json();",
+							"} catch (e) {",
+							"    console.error(\"❌ Response is not valid JSON\");",
+							"    pm.environment.unset(\"token\");",
+							"    return;",
+							"}",
+							"",
+							"// Check and set token",
+							"if (response.accessToken) {",
+							"    const token = response.accessToken;",
+							"    pm.environment.set(\"token\", token);",
+							"    console.log(\"✅ Token saved to environment:\", token);",
+							"} else {",
+							"    pm.environment.unset(\"token\");",
+							"    console.warn(\"⚠️ No accessToken found. Token variable removed.\");",
+							"}",
 							""
 						],
 						"type": "text/javascript",
@@ -517,7 +537,7 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdXBlcmFkbWluMSIsImlhdCI6MTc1MjkyNDgzMSwiZXhwIjoxNzUzNTI5NjMxfQ.UxnjzhBS3qswpqka5wGNfZ4ROHWbXrGfWbhVhb2HsLc54Ukdn7gOXSizq70v0LfjY9Fw3rdziNk_HaSR-ws2QA\","
+						"value": "Bearer {{token}}"
 					}
 				],
 				"body": {
@@ -543,18 +563,77 @@
 			"response": []
 		},
 		{
-			"name": "13. Update Patient Copy",
+			"name": "14.List All Doctors with Pagination & Filtering",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ID</th>",
+							"        <th>Username</th>",
+							"        <th>Email</th>",
+							"        <th>First Name</th>",
+							"        <th>Last Name</th>",
+							"        <th>Full Name</th>",
+							"        <th>Mobile</th>",
+							"        <th>Gender</th>",
+							"        <th>Date of Birth</th>",
+							"        <th>Specialization</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.content}}",
+							"        <tr>",
+							"            <td>{{id}}</td>",
+							"            <td>{{username}}</td>",
+							"            <td>{{email}}</td>",
+							"            <td>{{firstName}}</td>",
+							"            <td>{{lastName}}</td>",
+							"            <td>{{fullName}}</td>",
+							"            <td>{{mobile}}</td>",
+							"            <td>{{gender}}</td>",
+							"            <td>{{dateOfBirth}}</td>",
+							"            <td>{{specialization}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return { response: pm.response.json() };",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
-				"method": "PUT",
+				"method": "GET",
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdXBlcmFkbWluMSIsImlhdCI6MTc1MjkyNDgzMSwiZXhwIjoxNzUzNTI5NjMxfQ.UxnjzhBS3qswpqka5wGNfZ4ROHWbXrGfWbhVhb2HsLc54Ukdn7gOXSizq70v0LfjY9Fw3rdziNk_HaSR-ws2QA\","
+						"value": "Bearer {{token}}"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"title\": \"Mr.\",\r\n  \"firstName\": \"Saif Ali\",\r\n  \"lastName\": \"Hussain\",\r\n  \"mobileNumber\": \"9876098760\",\r\n  \"landlineNumber\": \"\",\r\n  \"fileNumber\": \"F123472\",\r\n  \"dateOfBirth\": \"1993-04-14\",\r\n  \"ageYears\": 32,\r\n  \"ageMonths\": 3,\r\n  \"ageDays\": 5,\r\n  \"sex\": \"MALE\",\r\n  \"maritalStatus\": \"SINGLE\",\r\n  \"motherTongue\": \"Urdu\",\r\n  \"govtIdType\": \"Passport\",\r\n  \"govtIdNumber\": \"N9876543\",\r\n  \"otherHospitalIds\": \"HOSP-4337\",\r\n  \"email\": \"ali.hussain@example.com\",\r\n  \"referrer\": {\r\n    \"referrerType\": \"Doctor\",\r\n    \"referrerName\": \"Dr. Farooq\",\r\n    \"referrerNumber\": \"DR012\",\r\n    \"referrerEmail\": \"dr.farooq@hospital.com\",\r\n    \"consultingDept\": \"ENT\",\r\n    \"consultingDoctor\": \"Dr. Siddiqui\",\r\n    \"mainComplaint\": \"Nasal blockage and snoring\"\r\n  },\r\n  \"address\": {\r\n    \"address\": \"Flat 302, Olive Residency\",\r\n    \"area\": \"Park Street\",\r\n    \"city\": \"Kolkata\",\r\n    \"pinCode\": \"700016\",\r\n    \"state\": \"West Bengal\",\r\n    \"country\": \"India\",\r\n    \"nationality\": \"Indian\",\r\n    \"internationalPatient\": false\r\n  },\r\n  \"photo\": {\r\n    \"filePath\": \"/uploads/photos/patient139.jpg\"\r\n  },\r\n  \"details\": {\r\n    \"bloodGroup\": \"A+\",\r\n    \"fatherName\": \"Salim Hussain\",\r\n    \"motherName\": \"Nazia Hussain\",\r\n    \"spouseName\": \"\",\r\n    \"alternateContact\": \"9876001234\",\r\n    \"education\": \"M.Tech\",\r\n    \"occupation\": \"Civil Engineer\",\r\n    \"religion\": \"Muslim\",\r\n    \"ivrLanguage\": \"Urdu\",\r\n    \"birthWeight\": 3.4\r\n  },\r\n  \"notes\": {\r\n    \"needsAttention\": true,\r\n    \"notes\": \"Referred for possible septoplasty surgery.\"\r\n  }\r\n}\r\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -562,13 +641,525 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/patients/19",
+					"raw": "{{baseUrl}}/doctors?page=0&size=10&name=",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
-						"patients",
-						"19"
+						"doctors"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						},
+						{
+							"key": "name",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15.Get Doctor Profile by ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ID</th>",
+							"        <th>Username</th>",
+							"        <th>Email</th>",
+							"        <th>First Name</th>",
+							"        <th>Last Name</th>",
+							"        <th>Full Name</th>",
+							"        <th>Mobile</th>",
+							"        <th>Gender</th>",
+							"        <th>Date of Birth</th>",
+							"        <th>Specialization</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.content}}",
+							"        <tr>",
+							"            <td>{{id}}</td>",
+							"            <td>{{username}}</td>",
+							"            <td>{{email}}</td>",
+							"            <td>{{firstName}}</td>",
+							"            <td>{{lastName}}</td>",
+							"            <td>{{fullName}}</td>",
+							"            <td>{{mobile}}</td>",
+							"            <td>{{gender}}</td>",
+							"            <td>{{dateOfBirth}}</td>",
+							"            <td>{{specialization}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return { response: pm.response.json() };",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/doctors?page=0&size=10&name=",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						},
+						{
+							"key": "name",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "16.Define Weekly Working Hours (Availability)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ID</th>",
+							"        <th>Username</th>",
+							"        <th>Email</th>",
+							"        <th>First Name</th>",
+							"        <th>Last Name</th>",
+							"        <th>Full Name</th>",
+							"        <th>Mobile</th>",
+							"        <th>Gender</th>",
+							"        <th>Date of Birth</th>",
+							"        <th>Specialization</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.content}}",
+							"        <tr>",
+							"            <td>{{id}}</td>",
+							"            <td>{{username}}</td>",
+							"            <td>{{email}}</td>",
+							"            <td>{{firstName}}</td>",
+							"            <td>{{lastName}}</td>",
+							"            <td>{{fullName}}</td>",
+							"            <td>{{mobile}}</td>",
+							"            <td>{{gender}}</td>",
+							"            <td>{{dateOfBirth}}</td>",
+							"            <td>{{specialization}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return { response: pm.response.json() };",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slotDurationInMinutes\": 30,\n    \"weeklyAvailability\": {\n      \"MONDAY\": [\n        { \"start\": \"09:00\", \"end\": \"11:00\" },\n        { \"start\": \"14:00\", \"end\": \"16:00\" }\n      ],\n      \"WEDNESDAY\": [\n        { \"start\": \"10:00\", \"end\": \"12:00\" }\n      ]\n    }\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/doctors/5/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors",
+						"5",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17.Update Availability",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ID</th>",
+							"        <th>Username</th>",
+							"        <th>Email</th>",
+							"        <th>First Name</th>",
+							"        <th>Last Name</th>",
+							"        <th>Full Name</th>",
+							"        <th>Mobile</th>",
+							"        <th>Gender</th>",
+							"        <th>Date of Birth</th>",
+							"        <th>Specialization</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.content}}",
+							"        <tr>",
+							"            <td>{{id}}</td>",
+							"            <td>{{username}}</td>",
+							"            <td>{{email}}</td>",
+							"            <td>{{firstName}}</td>",
+							"            <td>{{lastName}}</td>",
+							"            <td>{{fullName}}</td>",
+							"            <td>{{mobile}}</td>",
+							"            <td>{{gender}}</td>",
+							"            <td>{{dateOfBirth}}</td>",
+							"            <td>{{specialization}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return { response: pm.response.json() };",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slotDurationInMinutes\": 45,\n    \"weeklyAvailability\": {\n        \"MONDAY\": [\n            {\n                \"start\": \"09:30\",\n                \"end\": \"12:30\"\n            }\n        ],\n        \"WEDNESDAY\": [\n            {\n                \"start\": \"15:00\",\n                \"end\": \"17:00\"\n            }\n        ]\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/doctors/5/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors",
+						"5",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "18.Get Slots for a Specific Date",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var template = `",
+							"<style type=\"text/css\">",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+							"    .tftable tr {background-color:#ffffff;}",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+							"    .tftable tr:hover {background-color:#e0ffff;}",
+							"</style>",
+							"",
+							"<table class=\"tftable\" border=\"1\">",
+							"    <tr>",
+							"        <th>ID</th>",
+							"        <th>Username</th>",
+							"        <th>Email</th>",
+							"        <th>First Name</th>",
+							"        <th>Last Name</th>",
+							"        <th>Full Name</th>",
+							"        <th>Mobile</th>",
+							"        <th>Gender</th>",
+							"        <th>Date of Birth</th>",
+							"        <th>Specialization</th>",
+							"    </tr>",
+							"    ",
+							"    {{#each response.content}}",
+							"        <tr>",
+							"            <td>{{id}}</td>",
+							"            <td>{{username}}</td>",
+							"            <td>{{email}}</td>",
+							"            <td>{{firstName}}</td>",
+							"            <td>{{lastName}}</td>",
+							"            <td>{{fullName}}</td>",
+							"            <td>{{mobile}}</td>",
+							"            <td>{{gender}}</td>",
+							"            <td>{{dateOfBirth}}</td>",
+							"            <td>{{specialization}}</td>",
+							"        </tr>",
+							"    {{/each}}",
+							"</table>",
+							"`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    return { response: pm.response.json() };",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"slotDurationInMinutes\": 30,\n    \"weeklyAvailability\": {\n      \"MONDAY\": [\n        { \"start\": \"09:00\", \"end\": \"11:00\" },\n        { \"start\": \"14:00\", \"end\": \"16:00\" }\n      ],\n      \"WEDNESDAY\": [\n        { \"start\": \"10:00\", \"end\": \"12:00\" }\n      ]\n    }\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/doctors/5/slots?date=2025-08-11",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors",
+						"5",
+						"slots"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "2025-08-11"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "19.Deactivate Doctor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/doctors/5/deactivate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors",
+						"5",
+						"deactivate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "20.Delete Doctor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/doctors/5/deactivate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"doctors",
+						"5",
+						"deactivate"
 					]
 				}
 			},
@@ -592,26 +1183,6 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
-					"// Ensure we can parse the response",
-					"let response = {};",
-					"",
-					"try {",
-					"    response = pm.response.json();",
-					"} catch (e) {",
-					"    console.error(\"❌ Response is not valid JSON\");",
-					"    pm.environment.unset(\"token\");",
-					"    return;",
-					"}",
-					"",
-					"// Check and set token",
-					"if (response.accessToken) {",
-					"    const token = response.accessToken;",
-					"    pm.environment.set(\"token\", token);",
-					"    console.log(\"✅ Token saved to environment:\", token);",
-					"} else {",
-					"    pm.environment.unset(\"token\");",
-					"    console.warn(\"⚠️ No accessToken found. Token variable removed.\");",
-					"}",
 					""
 				]
 			}
