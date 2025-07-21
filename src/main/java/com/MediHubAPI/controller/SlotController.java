@@ -2,7 +2,6 @@ package com.MediHubAPI.controller;
 
 import com.MediHubAPI.dto.*;
 import com.MediHubAPI.exception.HospitalAPIException;
-import com.MediHubAPI.model.Appointment;
 import com.MediHubAPI.model.Slot;
 import com.MediHubAPI.service.SlotService;
 import jakarta.validation.Valid;
@@ -71,16 +70,16 @@ public class SlotController {
         }
     }
 
-    @PostMapping("/appointments/walk-in")
-    public ResponseEntity<?> bookWalkIn(@Valid @RequestBody WalkInAppointmentDto dto) {
-        try {
-            Appointment appointment = slotService.bookWalkInSlot(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(appointment);
-        } catch (Exception e) {
-            log.error("Error booking walk-in for doctor {} at {}: {}", dto.getDoctorId(), dto.getTime(), e.getMessage());
-            throw new HospitalAPIException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to book walk-in appointment");
-        }
-    }
+//    @PostMapping("/appointments/walk-in")
+//    public ResponseEntity<?> bookWalkIn(@Valid @RequestBody WalkInAppointmentDto dto) {
+//        try {
+//            Appointment appointment = slotService.bookWalkInSlot(dto);
+//            return ResponseEntity.status(HttpStatus.CREATED).body(appointment);
+//        } catch (Exception e) {
+//            log.error("Error booking walk-in for doctor {} at {}: {}", dto.getDoctorId(), dto.getTime(), e.getMessage());
+//            throw new HospitalAPIException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to book walk-in appointment");
+//        }
+//    }
 
     @GetMapping("/slots/emergency")
     public ResponseEntity<List<Slot>> getEmergencySlots(@RequestParam Long doctorId,
