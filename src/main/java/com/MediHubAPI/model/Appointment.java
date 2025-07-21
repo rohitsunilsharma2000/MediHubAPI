@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Data
@@ -31,4 +32,12 @@ public class Appointment {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "slot_id")
     private Slot slot;
+
+    // Denormalized for reporting/filtering
+    @Column(name = "appointment_date", nullable = false)
+    private LocalDate appointmentDate;
+
+    @Column(name = "slot_time", nullable = false)
+    private LocalTime slotTime; // denotes the time of the slot (usually slot.startTime)
+
 }
