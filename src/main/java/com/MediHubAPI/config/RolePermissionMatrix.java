@@ -14,7 +14,7 @@ public class RolePermissionMatrix {
         permissionMap.put(ERole.SUPER_ADMIN, EnumSet.of(
                 ERole.ADMIN, ERole.DOCTOR, ERole.NURSE,
                 ERole.RECEPTIONIST, ERole.BILLING_CLERK,
-                ERole.PHARMACIST, ERole.HR_MANAGER
+                ERole.PHARMACIST, ERole.HR_MANAGER,ERole.PATIENT
         ));
 
         permissionMap.put(ERole.ADMIN, EnumSet.of(
