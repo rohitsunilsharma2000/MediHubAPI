@@ -1,6 +1,7 @@
 package com.MediHubAPI.config;
 
 import com.MediHubAPI.dto.*;
+import com.MediHubAPI.model.Appointment;
 import com.MediHubAPI.model.Patient;
 import com.MediHubAPI.model.User;
 import org.modelmapper.ModelMapper;
@@ -32,6 +33,10 @@ public class MapperConfig {
         // Mapping: User -> DoctorProfileDto (skip ID)
         TypeMap<User, DoctorProfileDto> doctorMap = modelMapper.createTypeMap(User.class, DoctorProfileDto.class);
         doctorMap.addMappings(mapper -> mapper.skip(DoctorProfileDto::setId));
+
+        // Mapping: Appointment -> WalkInAppointmentDto (skip time)
+        modelMapper.typeMap(Appointment.class, WalkInAppointmentDto.class)
+                .addMappings(mapper -> mapper.skip(WalkInAppointmentDto::setTime));
 
         return modelMapper;
     }

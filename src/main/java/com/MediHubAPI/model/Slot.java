@@ -79,4 +79,7 @@ public class Slot {
     private String notes;
 
     // Add other metadata fields as needed (room, video link, etc.)
+
+    @OneToOne(mappedBy = "slot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Appointment appointment;
 }
