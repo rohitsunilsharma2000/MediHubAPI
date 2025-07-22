@@ -10,6 +10,9 @@ import java.time.LocalTime;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "appointments")
 public class Appointment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,5 +42,6 @@ public class Appointment {
 
     @Column(name = "slot_time", nullable = false)
     private LocalTime slotTime; // denotes the time of the slot (usually slot.startTime)
+
 
 }

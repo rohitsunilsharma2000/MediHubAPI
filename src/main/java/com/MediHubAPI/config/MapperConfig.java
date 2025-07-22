@@ -6,37 +6,58 @@ import com.MediHubAPI.model.Patient;
 import com.MediHubAPI.model.User;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MapperConfig {
 
-
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
-        // Enable private field mapping
+        // ✅ Enable private field mapping
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE)
                 .setAmbiguityIgnored(true);
 
+        // ✅ PatientCreateDto → Patient (skip ID)
+        modelMapper.createTypeMap(PatientCreateDto.class, Patient.class)
+                .addMappings(mapper -> mapper.skip(Patient::setId));
 
-        // Prevent mapping to 'id' field explicitly
-        // Mapping: PatientCreateDto -> Patient (skip ID)
+        // ✅ User → DoctorProfileDto (skip ID)
+        modelMapper.createTypeMap(User.class, DoctorProfileDto.class)
+                .addMappings(mapper -> mapper.skip(DoctorProfileDto::setId));
 
-        TypeMap<PatientCreateDto, Patient> typeMap = modelMapper.createTypeMap(PatientCreateDto.class, Patient.class);
-        typeMap.addMappings(mapper -> mapper.skip(Patient::setId));
-
-        // Mapping: User -> DoctorProfileDto (skip ID)
-        TypeMap<User, DoctorProfileDto> doctorMap = modelMapper.createTypeMap(User.class, DoctorProfileDto.class);
-        doctorMap.addMappings(mapper -> mapper.skip(DoctorProfileDto::setId));
-
-        // Mapping: Appointment -> WalkInAppointmentDto (skip time)
-        modelMapper.typeMap(Appointment.class, WalkInAppointmentDto.class)
+        // ✅ Appointment → WalkInAppointmentDto (skip time)
+        modelMapper.createTypeMap(Appointment.class, WalkInAppointmentDto.class)
                 .addMappings(mapper -> mapper.skip(WalkInAppointmentDto::setTime));
+
+        // ✅ Appointment → AppointmentResponseDto (custom doctor/patient name mapping)
+        TypeMap<Appointment, AppointmentResponseDto> appointmentMap =
+                modelMapper.createTypeMap(Appointment.class, AppointmentResponseDto.class);
+
+        appointmentMap.addMappings(mapper -> {
+            mapper.using((MappingContext<Appointment, String> ctx) -> {
+                Appointment src = ctx.getSource();
+                if (src != null && src.getDoctor() != null) {
+                    User doctor = src.getDoctor();
+                    return doctor.getFirstName() + " " + doctor.getLastName();
+                }
+                return "Unknown Doctor";
+            }).map(src -> src, AppointmentResponseDto::setDoctorName);
+
+            mapper.using((MappingContext<Appointment, String> ctx) -> {
+                Appointment src = ctx.getSource();
+                if (src != null && src.getPatient() != null) {
+                    User patient = src.getPatient();
+                    return patient.getFirstName() + " " + patient.getLastName();
+                }
+                return "Unknown Patient";
+            }).map(src -> src, AppointmentResponseDto::setPatientName);
+        });
 
         return modelMapper;
     }
