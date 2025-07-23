@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "5081879b-aa26-4215-bb7a-73e92b8c7efa",
+		"_postman_id": "7301e3b9-0e48-42b3-9a23-a648347f247f",
 		"name": "MediHub - Auth & User APIs",
 		"description": "Postman collection for AuthController and UserController APIs in MediHub Hospital Management System.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "46586247",
-		"_collection_link": "https://test-6842547.postman.co/workspace/test's-Workspace~9f23d41a-bb9d-4011-80a2-3c15346769cb/collection/46586247-5081879b-aa26-4215-bb7a-73e92b8c7efa?action=share&source=collection_link&creator=46586247"
+		"_exporter_id": "46671077",
+		"_collection_link": "https://amit-7068717.postman.co/workspace/Amit's-Workspace~68814650-5925-4a70-837d-1024adc01412/collection/46671077-7301e3b9-0e48-42b3-9a23-a648347f247f?action=share&source=collection_link&creator=46671077"
 	},
 	"item": [
 		{
@@ -125,7 +125,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"sneha_patil\",\n    \"email\": \"sneha.patil@hospitalmarathi.com\",\n    \"password\": \"sneha@123\",\n    \"firstName\": \"Sneha\",\n    \"lastName\": \"Patil\",\n    \"roles\": [\"PATIENT\"]\n  }"
+							"raw": "{\n  \"username\": \"tanmoy_das\",\n  \"email\": \"tanmoy.das@gmail.com\",\n  \"password\": \"tanmoy@123\",\n  \"firstName\": \"Tanmoy\",\n  \"lastName\": \"Das\",\n  \"roles\": [\"DOCTOR\"],\n  \"specializationId\": 2\n}\n"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/users",
@@ -1177,7 +1177,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"doctorId\": 13,\n    \"patientId\": 11,\n    \"appointmentDate\": \"2025-07-25\",\n    \"slotTime\": \"14:00\",\n    \"appointmentType\": \"IN_PERSON\"\n}\n\n",
+							"raw": "{\n    \"doctorId\": 3,\n    \"patientId\": 2,\n    \"appointmentDate\": \"2025-07-25\",\n    \"slotTime\": \"14:00\",\n    \"appointmentType\": \"IN_PERSON\"\n}\n\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1404,6 +1404,222 @@
 								"appointments",
 								"11",
 								"reschedule"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "24.1.Fetch appointments on a specific date",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"<style type=\"text/css\">\r",
+									"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r",
+									"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r",
+									"    .tftable tr {background-color:#ffffff;}\r",
+									"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r",
+									"    .tftable tr:hover {background-color:#e0ffff;}\r",
+									"</style>\r",
+									"\r",
+									"<table class=\"tftable\" border=\"1\">\r",
+									"    <tr>\r",
+									"        <th>ID</th>\r",
+									"        <th>Doctor Name</th>\r",
+									"        <th>Patient Name</th>\r",
+									"        <th>Appointment Date</th>\r",
+									"        <th>Slot Time</th>\r",
+									"        <th>Status</th>\r",
+									"        <th>Type</th>\r",
+									"    </tr>\r",
+									"    \r",
+									"    {{#each response.data.content}}\r",
+									"        <tr>\r",
+									"            <td>{{id}}</td>\r",
+									"            <td>{{doctorName}}</td>\r",
+									"            <td>{{patientName}}</td>\r",
+									"            <td>{{appointmentDate}}</td>\r",
+									"            <td>{{slotTime}}</td>\r",
+									"            <td>{{status}}</td>\r",
+									"            <td>{{type}}</td>\r",
+									"        </tr>\r",
+									"    {{/each}}\r",
+									"</table>\r",
+									"`;\r",
+									"\r",
+									"function constructVisualizerPayload() {\r",
+									"    var res = pm.response.json();\r",
+									"    return { response: res };\r",
+									"}\r",
+									"\r",
+									"pm.visualizer.set(template, constructVisualizerPayload());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"doctorId\": 13,\n    \"patientId\": 11,\n    \"date\": \"2025-07-21\",\n    \"slotStartTime\": \"14:00\",\n    \"slotEndTime\": \"14:30\",\n    \"appointmentType\": \"IN_PERSON\",\n    \"appointmentDate\": \"2025-07-21\",\n    \"slotTime\": \"14:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/appointments?range=WEEK",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"appointments"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025-07-23",
+									"disabled": true
+								},
+								{
+									"key": "range",
+									"value": "WEEK"
+								},
+								{
+									"key": "doctorName",
+									"value": "bijoy",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "BOOKED",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "appointmentDate,desc",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "24.2. Mark an appointment as arrived",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"<style type=\"text/css\">\r",
+									"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r",
+									"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r",
+									"    .tftable tr {background-color:#ffffff;}\r",
+									"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r",
+									"    .tftable tr:hover {background-color:#e0ffff;}\r",
+									"</style>\r",
+									"\r",
+									"<table class=\"tftable\" border=\"1\">\r",
+									"    <tr>\r",
+									"        <th>ID</th>\r",
+									"        <th>Doctor Name</th>\r",
+									"        <th>Patient Name</th>\r",
+									"        <th>Appointment Date</th>\r",
+									"        <th>Slot Time</th>\r",
+									"        <th>Status</th>\r",
+									"        <th>Type</th>\r",
+									"    </tr>\r",
+									"    \r",
+									"    {{#each response.data.content}}\r",
+									"        <tr>\r",
+									"            <td>{{id}}</td>\r",
+									"            <td>{{doctorName}}</td>\r",
+									"            <td>{{patientName}}</td>\r",
+									"            <td>{{appointmentDate}}</td>\r",
+									"            <td>{{slotTime}}</td>\r",
+									"            <td>{{status}}</td>\r",
+									"            <td>{{type}}</td>\r",
+									"        </tr>\r",
+									"    {{/each}}\r",
+									"</table>\r",
+									"`;\r",
+									"\r",
+									"function constructVisualizerPayload() {\r",
+									"    var res = pm.response.json();\r",
+									"    return { response: res };\r",
+									"}\r",
+									"\r",
+									"pm.visualizer.set(template, constructVisualizerPayload());"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/appointments/2/arrive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"appointments",
+								"2",
+								"arrive"
 							]
 						}
 					},
