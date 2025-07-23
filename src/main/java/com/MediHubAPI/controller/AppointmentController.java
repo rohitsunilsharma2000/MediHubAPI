@@ -3,6 +3,7 @@ package com.MediHubAPI.controller;
 import com.MediHubAPI.dto.ApiResponse;
 import com.MediHubAPI.dto.AppointmentBookingDto;
 import com.MediHubAPI.dto.AppointmentResponseDto;
+import com.MediHubAPI.model.enums.AppointmentStatus;
 import com.MediHubAPI.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -65,4 +66,25 @@ public class AppointmentController {
         AppointmentResponseDto rescheduled = appointmentService.reschedule(id, dto);
         return ResponseEntity.ok(ApiResponse.success(rescheduled, "/appointments/" + id + "/reschedule", "Appointment rescheduled"));
     }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<AppointmentResponseDto>>> getAppointmentsByDateWithFilters(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String doctorName,
+            @RequestParam(required = false) AppointmentStatus status,
+            @RequestParam(required = false) String range,// e.g. TODAY, WEEK, MONTH
+            Pageable pageable) {
+
+        log.info("📄 Fetching appointments by date={}, range={}, doctorName={}, status={}", date, range, doctorName, status);
+        Page<AppointmentResponseDto> appointments = appointmentService.getAppointmentsWithFilters(date, doctorName, status, range, pageable);
+        return ResponseEntity.ok(ApiResponse.success(appointments, "/appointments", "Appointments fetched with filters"));
+    }
+
+    @PutMapping("/{id}/arrive")
+    public ResponseEntity<ApiResponse<Void>> markAsArrived(@PathVariable Long id) {
+        log.info("✅ Marking appointment ID={} as ARRIVED", id);
+        appointmentService.markAsArrived(id);
+        return ResponseEntity.ok(ApiResponse.ok("Marked as arrived", "/appointments/" + id + "/arrive"));
+    }
+
 }

@@ -84,6 +84,59 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    public Page<AppointmentResponseDto> getAppointmentsWithFilters(LocalDate date, String doctorName, AppointmentStatus status, String range, Pageable pageable) {
+        LocalDate finalDate = resolveDateRange(date, range);
+
+        return appointmentRepo.findAll((root, query, cb) -> {
+            var predicates = cb.conjunction();
+
+            if (finalDate != null) {
+                predicates = cb.and(predicates, cb.equal(root.get("appointmentDate"), finalDate));
+            }
+
+            if (doctorName != null && !doctorName.isBlank()) {
+                predicates = cb.and(predicates, cb.like(cb.lower(root.get("doctor").get("firstName")), "%" + doctorName.toLowerCase() + "%"));
+            }
+
+            if (status != null) {
+                predicates = cb.and(predicates, cb.equal(root.get("status"), status));
+            }
+
+            return predicates;
+        }, pageable).map(a -> modelMapper.map(a, AppointmentResponseDto.class));
+    }
+
+    private LocalDate resolveDateRange(LocalDate date, String range) {
+        if (date != null) return date;
+        LocalDate today = LocalDate.now();
+
+        return switch (range != null ? range.toUpperCase() : "") {
+            case "TODAY" -> today;
+            case "DAY" -> today.plusDays(1);
+            case "PREV" -> today.minusDays(1);
+            case "NEXT" -> today.plusDays(1);
+            case "WEEK" -> null;  // You can implement WEEK logic using BETWEEN query instead
+            case "MONTH" -> null; // Implement if required
+            default -> null;
+        };
+    }
+
+    @Override
+    public void markAsArrived(Long appointmentId) {
+        Appointment appointment = appointmentRepo.findById(appointmentId)
+                .orElseThrow(() -> new HospitalAPIException(HttpStatus.NOT_FOUND, "Appointment not found"));
+
+        if (appointment.getStatus() != AppointmentStatus.BOOKED) {
+            throw new HospitalAPIException(HttpStatus.BAD_REQUEST, "Only booked appointments can be marked as arrived");
+        }
+
+        appointment.setStatus(AppointmentStatus.ARRIVED);
+        appointmentRepo.save(appointment);
+        log.info("✅ Appointment {} marked as ARRIVED", appointmentId);
+    }
+
+
+    @Override
     public void cancelAppointment(Long appointmentId) {
         log.info("🗑️ Cancelling appointment with id={}", appointmentId);
         Appointment appointment = appointmentRepo.findById(appointmentId)
