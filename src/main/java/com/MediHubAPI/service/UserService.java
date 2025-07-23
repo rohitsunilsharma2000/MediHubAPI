@@ -17,6 +17,4 @@ public interface UserService {
 
     void updateUserStatus(Long userId, boolean enabled);
     UserDto updateUserRolesByUsername(String username, Set<ERole> roles);
-
-
 }

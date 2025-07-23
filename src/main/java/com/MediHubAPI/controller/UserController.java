@@ -13,9 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+// @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -112,5 +115,16 @@ public class UserController {
             logger.error("Error deleting user with id: {}", id, e);
             throw new HospitalAPIException(HttpStatus.INTERNAL_SERVER_ERROR, "Error deleting user");
         }
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<String>> getAllRoles() {
+        // ERole enum ke saare values ko get karein, unko string mein convert karein, aur ek list mein collect karein
+        List<String> roles = Arrays.stream(ERole.values())
+                                     .map(ERole::name)
+                                     .collect(Collectors.toList());
+        
+        // List ko response mein OK status ke saath return karein
+        return ResponseEntity.ok(roles);
     }
 }

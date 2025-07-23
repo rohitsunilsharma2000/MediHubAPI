@@ -1,0 +1,17 @@
+package com.MediHubAPI.service;
+
+import com.MediHubAPI.dto.*;
+import com.MediHubAPI.model.Appointment;
+import com.MediHubAPI.model.Slot;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public interface SlotService {
+    void shiftSlots(Long doctorId, SlotShiftRequestDto request);
+    void blockSlots(Long doctorId, SlotBlockRequestDto request);
+    void unblockSlots(Long doctorId, SlotUnblockRequestDto request);
+    List<SlotStatusDto> getSlotStatuses(Long doctorId, LocalDate date);
+    Appointment bookWalkInSlot(WalkInAppointmentDto dto);
+    List<Slot> getEmergencySlots(Long doctorId, LocalDate date);
+}

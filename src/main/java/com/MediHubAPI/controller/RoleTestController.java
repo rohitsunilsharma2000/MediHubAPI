@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.web.bind.annotation.*;
 
+// @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/test-roles")
 public class RoleTestController {
