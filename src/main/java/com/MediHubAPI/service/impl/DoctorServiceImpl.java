@@ -1,6 +1,7 @@
 package com.MediHubAPI.service.impl;
 
 import com.MediHubAPI.dto.*;
+import com.MediHubAPI.dto.DoctorAvailabilityDto;
 import com.MediHubAPI.exception.HospitalAPIException;
 import com.MediHubAPI.exception.ResourceNotFoundException;
 import com.MediHubAPI.model.*;
