@@ -3,9 +3,7 @@ package com.MediHubAPI.service.impl;
 import com.MediHubAPI.dto.*;
 import com.MediHubAPI.exception.HospitalAPIException;
 import com.MediHubAPI.exception.ResourceNotFoundException;
-import com.MediHubAPI.model.ERole;
-import com.MediHubAPI.model.Slot;
-import com.MediHubAPI.model.User;
+import com.MediHubAPI.model.*;
 import com.MediHubAPI.model.enums.SlotStatus;
 import com.MediHubAPI.model.enums.SlotType;
 import com.MediHubAPI.repository.SlotRepository;
@@ -14,7 +12,6 @@ import com.MediHubAPI.service.DoctorService;
 import com.MediHubAPI.specification.DoctorSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.patterns.ConcreteCflowPointcut;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,12 +19,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -58,93 +52,86 @@ public class DoctorServiceImpl implements DoctorService {
         int duration = dto.getSlotDurationInMinutes();
         Map<DayOfWeek, List<DoctorAvailabilityDto.TimeRange>> availabilityMap = dto.getWeeklyAvailability();
 
-        for (Map.Entry<DayOfWeek, List<DoctorAvailabilityDto.TimeRange>> entry : availabilityMap.entrySet()) {
-            DayOfWeek day = entry.getKey();
-            List<DoctorAvailabilityDto.TimeRange> ranges = entry.getValue();
-
-            for (DoctorAvailabilityDto.TimeRange range : ranges) {
-                LocalTime start = range.getStart();
-                LocalTime end = range.getEnd();
-
-                // Generate slots for next 4 weeks for this day
+        availabilityMap.forEach((day, timeRanges) -> {
+            for (DoctorAvailabilityDto.TimeRange range : timeRanges) {
                 for (int week = 0; week < 4; week++) {
                     LocalDate targetDate = LocalDate.now()
                             .with(java.time.temporal.TemporalAdjusters.nextOrSame(day))
                             .plusWeeks(week);
 
-                    log.info("Generating slots for Doctor={}, Day={}, Date={}, Start={}, End={}",
-                            doctorId, day, targetDate, start, end);
-
-                    List<Slot> slots = new ArrayList<>();
-
-                    LocalTime current = start;
-                    while (current.plusMinutes(duration).compareTo(end) <= 0) {
-                        Slot slot = Slot.builder()
-                                .doctor(doctor)
-                                .date(targetDate)
-                                .startTime(current)
-                                .endTime(current.plusMinutes(duration))
-                                .status(SlotStatus.AVAILABLE)
-                                .type(SlotType.REGULAR)
-                                .build();
-
-                        slots.add(slot);
-                        current = current.plusMinutes(duration);
-                    }
-
-                    // Delete old slots first
-                    List<Slot> existing = slotRepository.findByDoctorIdAndDate(doctorId, targetDate);
-                    if (!existing.isEmpty()) {
-                        slotRepository.deleteAll(existing);
-                        log.warn("Deleted {} slots for Doctor={}, Date={}", existing.size(), doctorId, targetDate);
-                    }
-
-                    slotRepository.saveAll(slots);
-                    log.info("Created {} new slots for Doctor={}, Date={}", slots.size(), doctorId, targetDate);
+                    generateWeeklySlots(doctor, targetDate, range.getStart(), range.getEnd(), duration);
                 }
             }
-        }
+        });
     }
 
     @Override
     public void updateAvailability(Long id, DoctorAvailabilityDto dto) {
-//        log.info("Updating availability for doctorId={} on {}", id, dto.getDate());
-        defineAvailability(id, dto);
+        defineAvailability(id, dto); // reuse template method
     }
 
     @Override
     public List<SlotResponseDto> getSlotsForDate(Long doctorId, LocalDate date) {
         validateDoctor(doctorId);
         List<Slot> slots = slotRepository.findByDoctorIdAndDate(doctorId, date);
-        log.info("Fetched {} slots for doctorId={} on {}", slots.size(), doctorId, date);
-
+        log.info("✅ Fetched {} slots for doctorId={} on {}", slots.size(), doctorId, date);
         return slots.stream()
                 .map(slot -> modelMapper.map(slot, SlotResponseDto.class))
-                .toList();
+                .collect(Collectors.toList());
     }
-
 
     @Override
     public void deactivateDoctor(Long id) {
         User user = validateDoctor(id);
         user.setEnabled(false);
         userRepository.save(user);
-        log.warn("Doctor with ID={} has been deactivated", id);
+        log.warn("⚠️ Doctor with ID={} has been deactivated", id);
     }
 
     @Override
     public void deleteDoctor(Long id) {
         User user = validateDoctor(id);
         userRepository.delete(user);
-        log.warn("Doctor with ID={} has been deleted", id);
+        log.warn("🗑️ Doctor with ID={} has been deleted", id);
+    }
+
+    // 🔁 Template Method to generate and replace slots for a day
+    private void generateWeeklySlots(User doctor, LocalDate date, LocalTime start, LocalTime end, int duration) {
+        log.info("📅 Generating slots for Doctor={} Date={} Time={}–{}", doctor.getId(), date, start, end);
+
+        // Delete existing slots
+        List<Slot> existing = slotRepository.findByDoctorIdAndDate(doctor.getId(), date);
+        if (!existing.isEmpty()) {
+            slotRepository.deleteAll(existing);
+            log.warn("🧹 Deleted {} old slots for Doctor={} Date={}", existing.size(), doctor.getId(), date);
+        }
+
+        // Create new slots
+        List<Slot> slots = new ArrayList<>();
+        LocalTime current = start;
+        while (!current.plusMinutes(duration).isAfter(end)) {
+            slots.add(Slot.builder()
+                    .doctor(doctor)
+                    .date(date)
+                    .startTime(current)
+                    .endTime(current.plusMinutes(duration))
+                    .status(SlotStatus.AVAILABLE)
+                    .type(SlotType.REGULAR)
+                    .build());
+            current = current.plusMinutes(duration);
+        }
+
+        slotRepository.saveAll(slots);
+        log.info("✅ Created {} new slots for Doctor={} Date={}", slots.size(), doctor.getId(), date);
     }
 
     private User validateDoctor(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id=","id" , id));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id=", "id", id));
+
         boolean isDoctor = user.getRoles().stream().anyMatch(r -> r.getName() == ERole.DOCTOR);
         if (!isDoctor) {
-            log.error("User id={} is not a doctor", id);
+            log.error("❌ User ID={} is not a doctor", id);
             throw new HospitalAPIException(HttpStatus.BAD_REQUEST, "User is not a doctor");
         }
         return user;
