@@ -1,24 +1,27 @@
 package com.MediHubAPI.service.impl;
 
-import com.MediHubAPI.dto.AppointmentBookingDto;
-import com.MediHubAPI.dto.AppointmentResponseDto;
+import com.MediHubAPI.dto.*;
 import com.MediHubAPI.exception.HospitalAPIException;
 import com.MediHubAPI.model.Appointment;
+import com.MediHubAPI.model.Slot;
 import com.MediHubAPI.model.User;
 import com.MediHubAPI.model.enums.AppointmentStatus;
+import com.MediHubAPI.model.enums.SlotStatus;
 import com.MediHubAPI.repository.AppointmentRepository;
 import com.MediHubAPI.repository.UserRepository;
 import com.MediHubAPI.service.AppointmentService;
+import com.MediHubAPI.service.SlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +32,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentRepository appointmentRepo;
     private final UserRepository userRepo;
     private final ModelMapper modelMapper;
+
+    private final UserRepository userRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final SlotService slotService;  // ✅ Injected
 
     @Override
     public AppointmentResponseDto bookAppointment(AppointmentBookingDto dto) {
@@ -136,6 +143,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
 
+
     @Override
     public void cancelAppointment(Long appointmentId) {
         log.info("🗑️ Cancelling appointment with id={}", appointmentId);
@@ -169,4 +177,62 @@ public class AppointmentServiceImpl implements AppointmentService {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new HospitalAPIException(HttpStatus.NOT_FOUND, type + " not found"));
     }
+
+
+    @Override
+    public Page<DoctorScheduleDto> getDoctorSchedulesStructured(LocalDate date, String doctorName, String specialization, Pageable pageable) {
+        List<User> doctors = userRepository.findAll().stream()
+                .filter(u -> u.getRoles().stream().anyMatch(r -> r.getName().name().equals("DOCTOR")))
+                .filter(u -> doctorName == null || (u.getFirstName() + " " + u.getLastName()).toLowerCase().contains(doctorName.toLowerCase()))
+                .filter(u -> specialization == null || (u.getSpecialization() != null &&
+                        u.getSpecialization().getName().equalsIgnoreCase(specialization)))
+                .toList();
+
+        List<DoctorScheduleDto> dtos = doctors.stream().map(doctor -> {
+            List<Slot> slots = slotService.getEmergencySlots(doctor.getId(), date); // or a new method like getAllSlotsForDoctorDate
+            List<HourlySlotGroupDto> grouped = groupSlotsByHour(slots);
+
+            return DoctorScheduleDto.builder()
+                    .id(doctor.getId())
+                    .name("Dr. " + doctor.getFirstName() + " " + doctor.getLastName())
+                    .specialization(doctor.getSpecialization() != null ? doctor.getSpecialization().getName() : "General")
+                    .avatarUrl("https://storage.googleapis.com/uxpilot-auth.appspot.com/avatars/avatar-" + (doctor.getId() % 6 + 1) + ".jpg")
+                    .timeSlots(grouped)
+                    .build();
+        }).toList();
+
+        return new PageImpl<>(dtos, pageable, dtos.size());
+    }
+    private List<HourlySlotGroupDto> groupSlotsByHour(List<Slot> slots) {
+        // Group slots into 10-min segments by base hour
+        Map<String, List<TimeSlotDto>> hourlyGrouped = new TreeMap<>();
+
+        for (Slot slot : slots) {
+            String hourLabel = slot.getStartTime().withMinute(0).toString(); // "09:00"
+            String exactTime = slot.getStartTime().toString();              // "09:10"
+
+            TimeSlotDto dto = TimeSlotDto.builder()
+                    .time(exactTime)
+                    .status(slot.getStatus())
+                    .patientName(
+                            slot.getAppointment() != null && slot.getAppointment().getPatient() != null
+                                    ? slot.getAppointment().getPatient().getFirstName() + " " + slot.getAppointment().getPatient().getLastName()
+                                    : (slot.getStatus() == SlotStatus.LUNCH_BREAK ? "Lunch Break" : null)
+                    )
+                    .build();
+
+            hourlyGrouped.computeIfAbsent(hourLabel, k -> new ArrayList<>()).add(dto);
+        }
+
+        return hourlyGrouped.entrySet().stream()
+                .map(e -> HourlySlotGroupDto.builder()
+                        .timeLabel(e.getKey())
+                        .slots(e.getValue().stream()
+                                .sorted(Comparator.comparing(TimeSlotDto::getTime))
+                                .toList())
+                        .build())
+                .toList();
+    }
+
+
 }
