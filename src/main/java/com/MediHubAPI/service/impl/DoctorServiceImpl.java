@@ -46,8 +46,141 @@ public class DoctorServiceImpl implements DoctorService {
         return modelMapper.map(doctor, DoctorProfileDto.class);
     }
 
+    /**
+     * Defines the availability slots for a given doctor.
+     *
+     * <p>This method supports two types of availability:</p>
+     * <ul>
+     *     <li><b>Weekly recurring availability</b>: Optional. Repeats weekly for the next 4 weeks.</li>
+     *     <li><b>Date-specific availability</b>: Optional. One-time availability for exact dates.</li>
+     * </ul>
+     *
+     * @param doctorId the ID of the doctor
+     * @param dto the availability DTO containing slot duration and one or both types of availability
+     * @throws HospitalAPIException if the doctor does not exist or an error occurs during slot generation
+     */
     @Override
     public void defineAvailability(Long doctorId, DoctorAvailabilityDto dto) {
+        // Validate doctor existence
+        User doctor = validateDoctor(doctorId);
+
+        // Validate slot duration
+        Integer duration = dto.getSlotDurationInMinutes();
+        if (duration == null || duration <= 0 || duration > 240) {
+            throw new HospitalAPIException(HttpStatus.BAD_REQUEST,"Slot duration must be between 1 and 240 minutes.");        }
+
+        boolean hasWeekly = dto.getWeeklyAvailability() != null && !dto.getWeeklyAvailability().isEmpty();
+        boolean hasDateWise = dto.getDateWiseAvailability() != null && !dto.getDateWiseAvailability().isEmpty();
+
+        if (!hasWeekly && !hasDateWise) {
+            throw new HospitalAPIException(HttpStatus.BAD_REQUEST, "Please provide either weeklyAvailability or dateWiseAvailability.");        }
+
+        // Track already-added time ranges per date to prevent overlaps
+        Map<LocalDate, List<DoctorAvailabilityDto.TimeRange>> slotTracker = new HashMap<>();
+
+        // === Weekly Availability ===
+        if (hasWeekly) {
+            dto.getWeeklyAvailability().forEach((dayOfWeek, timeRanges) -> {
+                for (DoctorAvailabilityDto.TimeRange range : timeRanges) {
+                    validateTimeRange(range, "weeklyAvailability");
+
+                    for (int week = 0; week < 4; week++) {
+                        LocalDate date = LocalDate.now()
+                                .with(java.time.temporal.TemporalAdjusters.nextOrSame(dayOfWeek))
+                                .plusWeeks(week);
+
+                        checkOverlap(slotTracker, date, range);
+                        generateSlotsWithConflictCheck(doctor, date, range.getStart(), range.getEnd(), duration);
+                    }
+                }
+            });
+        }
+
+        // === Date-wise Availability ===
+        if (hasDateWise) {
+            Set<LocalDate> seenDates = new HashSet<>();
+            dto.getDateWiseAvailability().forEach((date, timeRanges) -> {
+                if (!seenDates.add(date)) {
+                    throw new HospitalAPIException(HttpStatus.CONFLICT, "Duplicate date entry: " + date);
+                }
+
+                for (DoctorAvailabilityDto.TimeRange range : timeRanges) {
+                    validateTimeRange(range, "dateWiseAvailability");
+                    checkOverlap(slotTracker, date, range);
+                    generateSlotsWithConflictCheck(doctor, date, range.getStart(), range.getEnd(), duration);
+                }
+            });
+        }
+    }
+    private void validateTimeRange(DoctorAvailabilityDto.TimeRange range, String source) {
+        if (range.getStart() == null || range.getEnd() == null) {
+            throw new HospitalAPIException(HttpStatus.BAD_REQUEST, "Start and end time must be provided in " + source);
+        }
+        if (!range.getStart().isBefore(range.getEnd())) {
+            throw new HospitalAPIException(HttpStatus.BAD_REQUEST, "End time must be after start time in " + source);
+        }
+    }
+    private void checkOverlap(Map<LocalDate, List<DoctorAvailabilityDto.TimeRange>> tracker,
+                              LocalDate date,
+                              DoctorAvailabilityDto.TimeRange newRange) {
+        List<DoctorAvailabilityDto.TimeRange> existing = tracker.computeIfAbsent(date, d -> new ArrayList<>());
+        for (DoctorAvailabilityDto.TimeRange r : existing) {
+            if (isOverlapping(r.getStart(), r.getEnd(), newRange.getStart(), newRange.getEnd())) {
+                throw new HospitalAPIException(
+                        HttpStatus.CONFLICT,
+                        String.format("Overlapping time blocks on %s: %s–%s overlaps with %s–%s", date, r.getStart(), r.getEnd(), newRange.getStart(), newRange.getEnd())
+                );
+            }
+        }
+        existing.add(newRange);
+    }
+    private boolean isOverlapping(LocalTime start1, LocalTime end1, LocalTime start2, LocalTime end2) {
+        return !start1.isAfter(end2.minusSeconds(1)) && !start2.isAfter(end1.minusSeconds(1));
+    }
+    private void generateSlotsWithConflictCheck(User doctor,
+                                                LocalDate date,
+                                                LocalTime start,
+                                                LocalTime end,
+                                                int duration) {
+        LocalTime current = start;
+
+        while (current.plusMinutes(duration).compareTo(end) <= 0) {
+            LocalTime slotEnd = current.plusMinutes(duration);
+
+            // Check if already booked
+            boolean exists = slotRepository.existsByDoctorIdAndDateAndStartTimeAndEndTime(
+                    doctor.getId(), date, current, slotEnd);
+            if (exists) {
+                throw new HospitalAPIException(
+                        HttpStatus.CONFLICT,
+                        String.format("Slot at %s already booked for %s", current, date)
+                );
+
+            }
+
+            // Save slot logic here (if needed)
+            // slotRepository.save(new Slot(doctor, date, current, slotEnd));
+            Slot slot = Slot.builder()
+                    .doctor(doctor)
+                    .date(date)
+                    .startTime(current)
+                    .endTime(slotEnd)
+                    .status(SlotStatus.AVAILABLE)
+                    .type(SlotType.REGULAR) // ✅ REQUIRED to avoid null
+                    .recurring(false)       // or true if this is from weekly template
+                    .build();
+
+            slotRepository.save(slot);
+
+
+            current = slotEnd;
+        }
+    }
+
+
+
+
+    public void defineAvailabilityByDay(Long doctorId, DoctorAvailabilityDto dto) {
         User doctor = validateDoctor(doctorId);
 
         int duration = dto.getSlotDurationInMinutes();
@@ -70,6 +203,7 @@ public class DoctorServiceImpl implements DoctorService {
     public void updateAvailability(Long id, DoctorAvailabilityDto dto) {
         defineAvailability(id, dto); // reuse template method
     }
+
 
     @Override
     public List<SlotResponseDto> getSlotsForDate(Long doctorId, LocalDate date) {
