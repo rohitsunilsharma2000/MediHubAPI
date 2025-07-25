@@ -3,6 +3,7 @@ package com.MediHubAPI.controller;
 import com.MediHubAPI.dto.ApiResponse;
 import com.MediHubAPI.dto.AppointmentBookingDto;
 import com.MediHubAPI.dto.AppointmentResponseDto;
+import com.MediHubAPI.dto.DoctorScheduleDto;
 import com.MediHubAPI.model.enums.AppointmentStatus;
 import com.MediHubAPI.service.AppointmentService;
 import jakarta.validation.Valid;
@@ -41,6 +42,17 @@ public class AppointmentController {
         List<AppointmentResponseDto> list = appointmentService.getAppointmentsForDoctor(doctorId, date);
         return ResponseEntity.ok(ApiResponse.success(list, "/appointments/" + doctorId, "Appointments fetched"));
     }
+    @GetMapping("/doctor-schedules/paged")
+    public ResponseEntity<ApiResponse<Page<DoctorScheduleDto>>> getDoctorSchedulesPaged(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String doctorName,
+            @RequestParam(required = false) String specialization,
+            Pageable pageable
+    ) {
+        Page<DoctorScheduleDto> page = appointmentService.getDoctorSchedulesStructured(date, doctorName, specialization, pageable);
+        return ResponseEntity.ok(ApiResponse.success(page, "/doctor-schedules/paged", "Doctor schedules paginated"));
+    }
+
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<ApiResponse<Page<AppointmentResponseDto>>> getPatientAppointments(

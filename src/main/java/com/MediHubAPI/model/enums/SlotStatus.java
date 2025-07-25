@@ -12,7 +12,9 @@ public enum SlotStatus {
     WALKIN("#FBC02D"),
     BLOCKED("#2F2F38"),
     NO_SHOW("#D32F2F"),
-    RESERVED("#4285F4");
+    RESERVED("#4285F4"),
+    PENDING(""),
+    LUNCH_BREAK("");
 
     private final String colorCode;
 

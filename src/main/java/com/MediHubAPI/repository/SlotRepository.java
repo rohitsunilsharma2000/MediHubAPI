@@ -34,4 +34,6 @@ public interface SlotRepository extends JpaRepository<Slot, Long>, JpaSpecificat
             Long doctorId, LocalDate date, SlotStatus status,
             LocalTime startTime, LocalTime endTime
     );
+
+    boolean existsByDoctorIdAndDateAndStartTimeAndEndTime(Long id, LocalDate date, LocalTime current, LocalTime slotEnd);
 }
