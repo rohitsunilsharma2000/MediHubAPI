@@ -14,4 +14,6 @@ public interface DoctorService {
     List<SlotResponseDto> getSlotsForDate(Long id, LocalDate date);
     void deactivateDoctor(Long id);
     void deleteDoctor(Long id);
+    List<UserDto> searchDoctorsByKeyword(String keyword);
+
 }

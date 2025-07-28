@@ -11,6 +11,8 @@ import com.MediHubAPI.repository.SlotRepository;
 import com.MediHubAPI.repository.UserRepository;
 import com.MediHubAPI.service.DoctorService;
 import com.MediHubAPI.specification.DoctorSpecification;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -271,4 +273,33 @@ public class DoctorServiceImpl implements DoctorService {
         }
         return user;
     }
+    @Override
+    public List<UserDto> searchDoctorsByKeyword(String keyword) {
+        Specification<User> spec = (root, query, cb) -> {
+            String keywordLike = "%" + keyword.toLowerCase() + "%";
+
+            // Join with specialization table
+            Join<?, ?> specializationJoin = root.join("specialization", JoinType.LEFT);
+
+            return cb.and(
+                    cb.isTrue(root.get("enabled")),
+
+                    cb.or(
+                            cb.like(cb.lower(root.get("firstName").as(String.class)), keywordLike),
+                            cb.like(cb.lower(root.get("lastName").as(String.class)), keywordLike),
+                            cb.like(cb.lower(root.get("username").as(String.class)), keywordLike),
+                            cb.like(cb.lower(root.get("email").as(String.class)), keywordLike),
+                            cb.like(cb.lower(specializationJoin.get("name")), keywordLike)
+                    )
+            );
+        };
+
+        List<User> users = userRepository.findAll(spec);
+
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+
 }

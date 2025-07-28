@@ -84,4 +84,26 @@ public class DoctorController {
         doctorService.deleteDoctor(id);
         return ResponseEntity.ok(ApiResponse.ok("Doctor deleted successfully", "/doctors/" + id));
     }
+
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<UserDto>>> searchDoctorsByKeyword(
+            @RequestParam String keyword) {
+        try {
+            log.info("🔍 Searching doctors by keyword: {}", keyword);
+
+            // simulate delay for UX like Google Search
+            Thread.sleep(300);
+
+            List<UserDto> results = doctorService.searchDoctorsByKeyword(keyword);
+            return ResponseEntity.ok(ApiResponse.success(results, "/doctors/search", "Doctors search successful"));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new HospitalAPIException(HttpStatus.INTERNAL_SERVER_ERROR, "Search interrupted");
+        } catch (Exception e) {
+            log.error("❌ Failed to search doctors", e);
+            throw new HospitalAPIException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to search doctors");
+        }
+    }
+
 }
