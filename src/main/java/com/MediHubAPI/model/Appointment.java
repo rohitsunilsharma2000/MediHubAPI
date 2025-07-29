@@ -13,7 +13,13 @@ import java.time.LocalTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "appointments")
+@Table(
+        name = "appointments",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"doctor_id", "appointment_date", "slot_time"}),
+                @UniqueConstraint(columnNames = {"patient_id", "appointment_date", "slot_time"})
+        }
+)
 public class Appointment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,5 +49,9 @@ public class Appointment {
     @Column(name = "slot_time", nullable = false)
     private LocalTime slotTime; // denotes the time of the slot (usually slot.startTime)
 
+    //Track the original appointment when a new one is created via rescheduling.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rescheduled_from")
+    private Appointment rescheduledFrom;
 
 }
