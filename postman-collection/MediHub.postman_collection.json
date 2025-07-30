@@ -1461,7 +1461,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"doctorId\": 13,\n    \"patientId\": 11,\n    \"date\": \"2025-07-21\",\n    \"slotStartTime\": \"14:00\",\n    \"slotEndTime\": \"14:30\",\n    \"appointmentType\": \"IN_PERSON\",\n    \"appointmentDate\": \"2025-07-21\",\n    \"slotTime\": \"14:00\"\n}",
+							"raw": "{\n    \"doctorId\": 13,\n    \"patientId\": 11,\n    // \"date\": \"2025-12-03\",\n    // \"slotStartTime\": \"10:00\",\n    // \"slotEndTime\": \"10:10\",\n    \"appointmentDate\": \"2025-12-03\",\n    \"slotTime\": \"10:00\",\n    \"appointmentType\": \"IN_PERSON\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1469,13 +1469,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/appointments/11/reschedule",
+							"raw": "{{baseUrl}}/appointments/7/reschedule",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"appointments",
-								"11",
+								"7",
 								"reschedule"
 							]
 						}
