@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -116,5 +117,16 @@ public class SlotServiceImpl implements SlotService {
         return slotRepository.findByDoctorIdAndDateAndStatusIn(
                 doctorId, date, List.of(SlotStatus.WALKIN, SlotStatus.AVAILABLE));
     }
+
+    @Override
+    public Slot getSlotByDoctorAndTime(Long doctorId, LocalDate appointmentDate, LocalTime slotTime) {
+        log.debug("🔍 Fetching slot for doctorId={}, date={}, time={}", doctorId, appointmentDate, slotTime);
+
+        return slotRepository.findByDoctorIdAndStartTimeAndDate(doctorId, slotTime, appointmentDate)
+                .orElseThrow(() -> new HospitalAPIException(HttpStatus.NOT_FOUND, "No slot found at this time for the doctor"));
+
+    }
+
+
 }
 

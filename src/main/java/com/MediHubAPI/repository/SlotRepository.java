@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface SlotRepository extends JpaRepository<Slot, Long>, JpaSpecificationExecutor<Slot> {
 
@@ -27,11 +28,8 @@ public interface SlotRepository extends JpaRepository<Slot, Long>, JpaSpecificat
      */
     List<Slot> findByDoctorIdAndDateAndStatusIn(Long doctorId, LocalDate date, List<SlotStatus> statuses);
 
-    /**
-     * Fetch blocked slots for doctor within given time range.
-     */
-    List<Slot> findByDoctorIdAndDateAndStatusAndStartTimeGreaterThanEqualAndEndTimeLessThanEqual(
-            Long doctorId, LocalDate date, SlotStatus status,
-            LocalTime startTime, LocalTime endTime
-    );
+    boolean existsByDoctorIdAndDateAndStartTimeAndEndTime(Long id, LocalDate date, LocalTime current, LocalTime slotEnd);
+
+    Optional<Slot> findByDoctorIdAndStartTimeAndDate(Long doctorId, LocalTime slotTime, LocalDate appointmentDate);
+
 }

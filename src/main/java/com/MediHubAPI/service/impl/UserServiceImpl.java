@@ -189,5 +189,12 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    public User findUserOrThrow(Long id, String role) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new HospitalAPIException(
+                        HttpStatus.NOT_FOUND,
+                        role + " with ID " + id + " not found"
+                ));
+    }
 
 }

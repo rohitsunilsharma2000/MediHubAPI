@@ -15,4 +15,5 @@ public class AppointmentResponseDto {
     private LocalTime slotTime;
     private String status;
     private AppointmentType type;
+    private SlotInfoDto slot; // ✅ New slot info
 }
